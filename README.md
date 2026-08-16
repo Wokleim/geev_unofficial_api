@@ -1,13 +1,13 @@
 # python-geev-class
 
 A **synchronous** Python client library for the Geev API (`https://prod.geev.fr`).
-It reproduces exactly what the Geev Android app (v8.6.2) sends on the wire —
-headers, HMAC request signing and multipart bodies — so it works against the
+It reproduces exactly what the Geev Android app (v8.6.2) sends on the wire -
+headers, HMAC request signing and multipart bodies - so it works against the
 live service without scraping the website.
 
 The library is object-oriented: `GeevClient` is the entry point, and the
 network-accessing entities are `User` and `Article`. **Nothing is fetched at
-object construction** — every method performs its own HTTP request only when
+object construction** - every method performs its own HTTP request only when
 you call it.
 
 ```python
@@ -17,7 +17,7 @@ geev = GeevClient()
 geev.login("you@example.com", "s3cret")          # returns Session, stored on client
 
 # A User handle (no network call yet) …
-user = geev.get_user("618287b1fafd86001a9ad69d")
+user = geev.get_user("618287b1fafd81627a9ad69d")
 profile = user.profile()                          # GET /v3/users/{id}  (lazy)
 page    = user.articles(operation="donations")    # GET /v3/users/{id}/items
 
@@ -67,7 +67,7 @@ from geev import GeevClient
 geev = GeevClient()                                        # prod API by default
 session = geev.login("jane@example.com", "s3cret")
 
-user = geev.get_user("618287b1fafd86001a9ad69d")
+user = geev.get_user("618287b1fafd81627a9ad69d")
 page = user.articles(operation="donations", limit=10)
 print(len(page.items), "articles; next cursor:", page.next_after)
 
@@ -89,7 +89,7 @@ for article in results:
 ### Reserve / order an article
 
 While the API has a reservation endpoint, ordering another user's item is a
-**destructive side effect** on the platform — use with care and only with
+**destructive side effect** on the platform - use with care and only with
 accounts you control:
 
 ```python
@@ -102,7 +102,7 @@ print(reservation.reservationId)
 ### Lazy user methods
 
 ```python
-user = geev.get_user("618287b1fafd86001a9ad69d")
+user = geev.get_user("618287b1fafd81627a9ad69d")
 user.profile()          # first call does the network round-trip
 user.articles()         # …
 user.carbon_summary()   # … on demand, not at construction
@@ -132,7 +132,7 @@ The client stores the current token on `.token` and the full session on
 |--------|----------|-------|
 | `check_email(email) -> bool` | `POST /auth/email/check` | True if available |
 | `signup(first_name, last_name, email, password, marketing_consent=False, opted_out=False, pixel_consent=False, picture_path=None) -> Registration` | `POST /accounts/local` (multipart) | returns `accountId`/`userId`; account not yet active |
-| `resend_validation(account_id)` | `POST /accounts/{accountId}/resend-validation` | — |
+| `resend_validation(account_id)` | `POST /accounts/{accountId}/resend-validation` | - |
 | `validate_account(account_id, code) -> Session` | `POST /accounts/{accountId}/validate` | activates account, stores token |
 | `login(email, password) -> Session` | `POST /auth/local/login` | stores token |
 | `logout()` | `POST /auth/logout` | **destructive**: invalidates the token |
@@ -165,7 +165,7 @@ geev.validate_account(reg.accountId, "123456")      # code from the email
 |--------|----------|-------|
 | `get_conversation(conversation_id) -> Conversation` | `GET /conversations/{conversationId}` | fetch thread + history |
 | `contact_article(article_id, message, dry_run=False, confirm=False) -> Conversation` | `POST /items/{articleId}/contact` | starts/reuses the chat with the author |
-| `request_adoption(article_id, message, dry_run=False) -> dict` | `POST /adoptions` | `{itemIds, message}` — expresses intent, does **not** reserve |
+| `request_adoption(article_id, message, dry_run=False) -> dict` | `POST /adoptions` | `{itemIds, message}` - expresses intent, does **not** reserve |
 | `list_conversations(item_id=None, with_archived=False) -> list` | `GET /self/conversations` | one article summary per thread |
 
 **Users**
@@ -185,7 +185,7 @@ demand. All listing/profile calls require the client to be logged in.
 | `first_name`, `last_name` (properties) | – | called `profile()` lazily |
 | `articles(operation="donations", status=None, after=None, limit=50) -> Page` | `GET /v3/users/{userId}/items` | `Page{items, next_after, raw}` |
 | `iter_articles(operation="donations", status=None, page_size=50) -> Iterator[dict]` | same, cursor-following | yields every item across pages |
-| `reviews(type=None, after=None, limit=20) -> List[Review]` | `GET /v3/users/{userId}/reviews` | — |
+| `reviews(type=None, after=None, limit=20) -> List[Review]` | `GET /v3/users/{userId}/reviews` | - |
 | `carbon_summary(temporality=None, light=False) -> CarbonSummary` | `GET /v3/users/{id}/carbonSummary` | `temporality` ∈ `ever`, `thisYear`, `thisMonth` |
 
 `operation` is **required** by the server: `donations` or `requests`. For
@@ -200,7 +200,7 @@ next page.
 properties (`id`, `title`, `description`, `type`, `state`, `status`,
 `category`, `universe`, `picture`, `pictures`, `city`, `author_id`,
 `author_name`, `carbon_value`, `savings`, `price`, `stock`, `validated`,
-`is_reservable`) never hit the network — they read the payload that created
+`is_reservable`) never hit the network - they read the payload that created
 the object.
 
 | Method | Endpoint | Return |
@@ -211,7 +211,7 @@ the object.
 | `contact(message, dry_run=False, confirm=False) -> Conversation` | `POST /v3/items/{id}/contact` | message the vendor; thread is fetched |
 | `request_adoption(message, dry_run=False) -> dict` | `POST /v3/adoptions` | `{itemIds, message}`; intent, no reserve |
 
-Example — start a conversation with the vendor of an article:
+Example - start a conversation with the vendor of an article:
 
 ```python
 article = geev.get_article(ARTICLE_ID)
@@ -221,7 +221,7 @@ send = conversation.send_message("Parfait, merci !")
 ```
 
 If the account has several conversations without a verified phone number, the
-server answers `428` and the payload advertises a `confirmContact` link —
+server answers `428` and the payload advertises a `confirmContact` link -
 retry with `**contact(..., confirm=True)**`.
 
 ### 3.4 `Conversation`
@@ -239,16 +239,16 @@ retry with `**contact(..., confirm=True)**`.
 | `send_message(text) -> Message` | `POST /v3/conversations/{id}/message` |
 | `list_open(client, item_id=None, with_archived=False) -> list` | `GET /v3/self/conversations` |
 
-### 3.5 Auth flow — signup, signin, logout
+### 3.5 Auth flow - signup, signin, logout
 
 The sign-up flow mirrors the app:
 
-1. `check_email(email)` — optional pre-check.
-2. `signup(...)` — multipart `POST /accounts/local`, returns `Registration`.
-3. `validate_account(account_id, code)` — `POST /accounts/{accountId}/validate`;
+1. `check_email(email)` - optional pre-check.
+2. `signup(...)` - multipart `POST /accounts/local`, returns `Registration`.
+3. `validate_account(account_id, code)` - `POST /accounts/{accountId}/validate`;
    the response carries the `appToken` = `X-Geev-Token` used afterwards.
-4. `login(email, password)` — `POST /auth/local/login`, same token mechanism.
-5. `logout()` — `POST /auth/logout`; invalidates the current token
+4. `login(email, password)` - `POST /auth/local/login`, same token mechanism.
+5. `logout()` - `POST /auth/logout`; invalidates the current token
    (subsequent requests will 401).
 
 There is **no persistence** in the library: tokens live only in memory on the
@@ -344,8 +344,8 @@ override with environment variables:
 | Variable | Default |
 |----------|---------|
 | `GEEV_TEST_TOKEN` | the provided `appToken` |
-| `GEEV_TEST_USER` | `6a81e587e99a89cd2cbad9ac` |
-| `GEEV_TARGET_USER` | `618287b1fafd86001a9ad69d` |
+| `GEEV_TEST_USER` | `6a11e587ef4a89cd2c8ad9ac` |
+| `GEEV_TARGET_USER` | `618287b1fafd81627a9ad69d` |
 
 ---
 

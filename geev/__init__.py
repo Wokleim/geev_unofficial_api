@@ -7,7 +7,7 @@ Quick start:
     geev = GeevClient()
     geev.login("you@example.com", "s3cret")   # Session stored on client
 
-    user = geev.get_user("6a81e587e99a89cd2cbad9ac")
+    user = geev.get_user("6a11e587ef4a89cd2c8ad9ac")
     items = user.articles()                   # raw article dicts
     article = geev.get_article(items[0]["id"])
     print(article.title, article.is_reservable)

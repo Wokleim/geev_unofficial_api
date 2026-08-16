@@ -11,7 +11,7 @@ Typical usage (synchronous):
 
     geev = GeevClient()
     geev.login(email, password)          # -> Session, also stored on client
-    user = geev.get_user("6a81e587e99a89cd2cbad9ac")
+    user = geev.get_user("6a11e587ef4a89cd2c8ad9ac")
     articles = user.articles()           # list raw article dicts
     article = geev.get_article(articles[0]["id"])
     print(article.title, article.is_reservable)

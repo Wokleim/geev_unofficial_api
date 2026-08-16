@@ -16,12 +16,12 @@ from geev import GeevClient
 geev = GeevClient()
 geev.login("you@example.com", "s3cret")          # returns Session, stored on client
 
-# A User handle (no network call yet) …
+# A User handle (no network call yet) ...
 user = geev.get_user("618287b1fafd81627a9ad69d")
 profile = user.profile()                          # GET /v3/users/{id}  (lazy)
 page    = user.articles(operation="donations")    # GET /v3/users/{id}/items
 
-# … and Articles
+# ... and Articles
 article = geev.get_article(page.items[0]["id"])
 print(article.title, article.is_reservable)
 article.details()                                 # GET /v3/items/{id}  (lazy)
@@ -104,8 +104,8 @@ print(reservation.reservationId)
 ```python
 user = geev.get_user("618287b1fafd81627a9ad69d")
 user.profile()          # first call does the network round-trip
-user.articles()         # …
-user.carbon_summary()   # … on demand, not at construction
+user.articles()         # ...
+user.carbon_summary()   # ... on demand, not at construction
 ```
 
 ---
@@ -181,7 +181,7 @@ demand. All listing/profile calls require the client to be logged in.
 
 | Method | Endpoint | Return |
 |--------|----------|--------|
-| `profile()` | `GET /v3/users/{userId}` | raw dict (`firstName`, `lastName`, `firstIntention`, `_links`, …) |
+| `profile()` | `GET /v3/users/{userId}` | raw dict (`firstName`, `lastName`, `firstIntention`, `_links`, ...) |
 | `first_name`, `last_name` (properties) | – | called `profile()` lazily |
 | `articles(operation="donations", status=None, after=None, limit=50) -> Page` | `GET /v3/users/{userId}/items` | `Page{items, next_after, raw}` |
 | `iter_articles(operation="donations", status=None, page_size=50) -> Iterator[dict]` | same, cursor-following | yields every item across pages |
@@ -359,7 +359,7 @@ python_geev_class/
 │   ├── __init__.py            # public exports
 │   ├── _http.py               # headers, signing, multipart, transport
 │   ├── exceptions.py          # error types
-│   ├── models.py              # value objects (Session, Page, …)
+│   ├── models.py              # value objects (Session, Page, ...)
 │   ├── auth.py                # signup / signin / logout / validate
 │   ├── users.py               # User class + user operations
 │   ├── articles.py            # Article class + search / reserve

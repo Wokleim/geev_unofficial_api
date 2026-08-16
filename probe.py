@@ -14,10 +14,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from geev import GeevClient, Session
 from geev.exceptions import BadRequest
 
-TOKEN = os.environ.get("GEEV_TEST_TOKEN", "D2iJSvsfYHwT0n5y2hml4UzeaGSS8NbLiIpUBwhoumHM4UENT0Jpt4q-qRnLhCWe")
+TOKEN = os.environ.get("GEEV_TEST_TOKEN", "YOUR-TOKEN-HERE")
 ACCOUNT = os.environ.get("GEEV_TEST_USER", "6a81e587e99a89cd2cbad9ac")
 TARGET = os.environ.get("GEEV_TARGET_USER", "6a7fa614571a56d34a990dac")
-ARTICLE_ID = "6a81e3123df5d3f7becd995f"
+ARTICLE_ID = "6a81e3123df5d3f7becda15f"
 LAT = 48.791254196648026
 LNG = 2.287006234644051
 

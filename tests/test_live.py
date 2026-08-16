@@ -126,7 +126,7 @@ class TestMessaging:
     428 phone-verification threshold while poking random articles.
     """
 
-    TEST_ARTICLE_ID = "6a81e3123df5d3f7becd995f"
+    TEST_ARTICLE_ID = "6a81e3123df5d3f7becda15f"
 
     def test_contact_article_creates_conversation(self, client):
         article = client.get_article(self.TEST_ARTICLE_ID)
@@ -212,7 +212,7 @@ class TestSelfAndOrders:
         from geev.exceptions import BadRequest
         anonymous = GeevClient()
         with pytest.raises(BadRequest):
-            anonymous.confirm_order("6a81e3123df5d3f7becd995f")
+            anonymous.confirm_order("6a81e3123df5d3f7becda15f")
 
 
 class TestSearch:

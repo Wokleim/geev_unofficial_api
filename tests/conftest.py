@@ -16,7 +16,7 @@ import pytest
 
 from geev import GeevClient
 
-DEFAULT_TOKEN = os.environ.get("GEEV_TEST_TOKEN", "D2iJSvsfYHwT0n5y2hml4UzeaGSS8NbLiIpUBwhoumHM4UENT0Jpt4q-qRnLhCWe")
+DEFAULT_TOKEN = os.environ.get("GEEV_TEST_TOKEN", "YOUR-TOKEN-HERE")
 ACCOUNT_USER = "6a81e587e99a89cd2cbad9ac"
 TARGET_USER = "6a7fa614571a56d34a990dac"
 

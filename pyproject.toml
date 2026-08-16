@@ -1,0 +1,28 @@
+[project]
+name = "python-geev-class"
+version = "0.1.0"
+description = "Synchronous client library for the Geev peer-to-peer donation/sales app (https://www.geev.fr)."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+dependencies = [
+    "requests>=2.28",
+]
+
+[project.optional-dependencies]
+tests = [
+    "pytest>=7",
+]
+
+[tool.pytest.ini_options]
+markers = [
+    "live: runs against the real prod.geev.fr API",
+    "authless: live tests that need no login",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["geev"]

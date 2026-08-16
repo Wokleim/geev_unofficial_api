@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import pytest
 
-from geev import GeevClient
+from geev import GeevClient, AdoptionConfirmed, ConversationSummary
 
 pytestmark = pytest.mark.live
 
@@ -126,7 +126,7 @@ class TestMessaging:
     428 phone-verification threshold while poking random articles.
     """
 
-    TEST_ARTICLE_ID = "6a81e3123df5d3f7becda15f"
+    TEST_ARTICLE_ID = "6a81e3123df5d3f7becd995f"
 
     def test_contact_article_creates_conversation(self, client):
         article = client.get_article(self.TEST_ARTICLE_ID)
@@ -162,6 +162,57 @@ class TestMessaging:
             article.id, "Test adoption request from the library.")
         assert isinstance(result, dict)
         assert "adoptionId" in result or "conversationId" in result
+
+
+class TestSelfAndOrders:
+    """Self profile, inbox, reserved collections and delivery confirmation."""
+
+    def test_get_me(self, client):
+        me = client.get_me()
+        assert me.user_id
+        assert me.user_id == client.session.userId
+        profile = me.profile()
+        assert isinstance(profile, dict)
+
+    def test_get_inbox(self, client):
+        inbox = client.get_inbox()
+        assert isinstance(inbox, list)
+        for summary in inbox:
+            assert isinstance(summary, ConversationSummary)
+            assert summary.conversation_id
+
+    def test_get_reserved_collections(self, client):
+        reserved = client.get_reserved_collections()
+        assert isinstance(reserved, list)
+        for summary in reserved:
+            assert summary.reserved is True
+
+    def test_confirm_adoption_when_deliverable(self, client):
+        """Confirm delivery of a reserved deal left in the GIVEN state.
+
+        The deal is closed once confirmed; when the account has already
+        confirmed (or never reached the given state), skip instead.
+        """
+        deal = next((s for s in client.get_reserved_collections()
+                     if s.given and not s.acquired), None)
+        if not deal:
+            pytest.skip("no reserved deal awaiting delivery confirmation")
+        conversation = client.get_conversation(deal.conversation_id)
+        assert conversation.reservation_id
+        result = client.confirm_adoption(
+            conversation.reservation_id,
+            communication_grade=5.0,
+            punctuality_grade=5.0,
+            feedback="Test de confirmation depuis la librairie.",
+        )
+        assert isinstance(result, AdoptionConfirmed)
+        assert "savings" in result.raw or "carbonValue" in result.raw
+
+    def test_confirm_order_requires_session(self, client):
+        from geev.exceptions import BadRequest
+        anonymous = GeevClient()
+        with pytest.raises(BadRequest):
+            anonymous.confirm_order("6a81e3123df5d3f7becd995f")
 
 
 class TestSearch:

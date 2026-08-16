@@ -26,7 +26,13 @@ from ._http import HttpEndpoints, SigningConfig
 from .articles import Article, search_articles
 from .conversations import Conversation
 from .exceptions import BadRequest
-from .models import Reservation, Session
+from .models import (
+    AdoptionConfirmed,
+    ConversationSummary,
+    OrderConfirmed,
+    Reservation,
+    Session,
+)
 from .users import User
 
 
@@ -188,6 +194,79 @@ class GeevClient:
         return Conversation.list_open(
             self, item_id=item_id, with_archived=with_archived)
 
+    def get_inbox(self, *, with_archived: bool = False
+                  ) -> List[ConversationSummary]:
+        """Fetch the messaging inbox (``GET /v3/self/conversations``).
+
+        One :class:`ConversationSummary` per article the logged-in user has a
+        thread on, each carrying the latest chat message
+        (``latest_message`` / ``latest_message_author``), the unread count
+        and the deal-state flags (``reserved``, ``given``, ...) used by the
+        app's inbox tabs.
+        """
+        payload = self.http.get("/self/conversations",
+                                params={"withArchived": "true"}
+                                if with_archived else None)
+        if not isinstance(payload, list):
+            payload = payload.get("data") or payload.get("conversations") or []
+        return [ConversationSummary.from_server(item) for item in payload]
+
+    def get_reserved_collections(self) -> List[ConversationSummary]:
+        """List the *reserved* deals of the logged-in user.
+
+        The inbox entries where the vendor/adopter agreed
+        (``reserved == True``): the deals awaiting hand-over or confirmation.
+        This is the app's "Réservations" inbox tab, derived client-side from
+        :meth:`get_inbox`.
+        """
+        return [s for s in self.get_inbox() if s.reserved]
+
+    def confirm_order(self, article_id: str, *,
+                      recipient_user_id: Optional[str] = None,
+                      firstname: Optional[str] = None,
+                      lastname: Optional[str] = None) -> OrderConfirmed:
+        """Confirm a sale order (``POST /v3/reservations``).
+
+        Sends ``ConfirmationOrderRemote``: ``{"itemId", "reserveToUserId",
+        "contactInfo": {"firstname", "lastname"}}`` and returns the created
+        ``{"reservationId", "conversationId"}``. Recipient defaults to the
+        logged-in user.
+        """
+        recipient_user_id = recipient_user_id or (self.session.userId
+                                                  if self.session else None)
+        if not recipient_user_id:
+            raise BadRequest("confirm_order needs recipient_user_id "
+                             "(login first or pass it explicitly).")
+        body: Dict[str, Any] = {
+            "itemId": article_id,
+            "reserveToUserId": recipient_user_id,
+            "contactInfo": {"firstname": firstname or "", "lastname": lastname or ""},
+        }
+        resp = self.http.post("/reservations", json_body=body)
+        return OrderConfirmed.from_server(resp)
+
+    def confirm_adoption(self, reservation_id: str, *,
+                         communication_grade: float,
+                         punctuality_grade: float,
+                         feedback: Optional[str] = None) -> AdoptionConfirmed:
+        """Confirm that a donation adoption took place.
+
+        ``PATCH /v3/reservations/{reservationId}/confirm-adoption`` with
+        ``{"communicationGrade", "punctualityGrade", "feedbackMessage"}`` —
+        the adopter's acknowledgement that the order was delivered. Returns
+        the community savings of the transaction (``bigSavings`` /
+        ``carbonValue`` / ``savings``).
+        """
+        body: Dict[str, Any] = {
+            "communicationGrade": communication_grade,
+            "punctualityGrade": punctuality_grade,
+        }
+        if feedback:
+            body["feedbackMessage"] = feedback
+        resp = self.http.patch(
+            f"/reservations/{reservation_id}/confirm-adoption", json_body=body)
+        return AdoptionConfirmed.from_server(resp)
+
     def reserve_article(self, article_id: str, *,
                         recipient_user_id: Optional[str] = None) -> Reservation:
         """Reserve an article for the logged-in user (or ``recipient_user_id``).
@@ -211,3 +290,15 @@ class GeevClient:
     def get_user(self, user_id: str) -> User:
         """Create a :class:`User` handle (no network call yet)."""
         return User(self, user_id)
+
+    def get_me(self) -> User:
+        """Return a :class:`User` handle for the account in the loaded session.
+
+        Same object type as :meth:`get_user`, but always targeting the
+        logged-in user (``session.userId``). Fetches happen lazily on the
+        returned handle (e.g. ``me.profile()``, ``me.articles()``).
+        """
+        if not self.session or not self.session.userId:
+            raise BadRequest("get_me requires an authenticated session "
+                             "(login first).")
+        return self.get_user(self.session.userId)

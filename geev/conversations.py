@@ -46,6 +46,14 @@ class Conversation:
         return self.data.status if self.data else None
 
     @property
+    def reservation_id(self) -> Optional[str]:
+        return self.data.reservation_id if self.data else None
+
+    @property
+    def reservation(self) -> Optional[Dict[str, Any]]:
+        return self.data.reservation if self.data else None
+
+    @property
     def messages(self) -> List[Message]:
         return self.data.messages if self.data else []
 

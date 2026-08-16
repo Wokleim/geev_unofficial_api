@@ -172,6 +172,8 @@ class Conversation:
     item: Optional[Dict[str, Any]] = None
     status: Optional[str] = None
     active: Optional[bool] = None
+    reservation_id: Optional[str] = None
+    reservation: Optional[Dict[str, Any]] = None
     messages: List[Message] = field(default_factory=list)
     raw: Dict[str, Any] = field(default_factory=dict)
 
@@ -193,6 +195,112 @@ class Conversation:
             item=payload.get("item"),
             status=payload.get("status"),
             active=payload.get("active"),
+            reservation_id=payload.get("reservationId"),
+            reservation=payload.get("reservation"),
             messages=[Message.from_server(m) for m in messages],
+            raw=payload,
+        )
+
+
+@dataclass
+class ConversationSummary:
+    """One entry of the messaging inbox (``MessagingSummaryResponse``).
+
+    Returned by ``GET /v3/self/conversations``: a per-article summary of the
+    conversations the logged-in user has, carrying the *latest* chat message
+    and the deal-state flags used to build the inbox tabs
+    (``reserved`` / ``given`` / ``acquired`` / ``closed`` / ``archived``).
+    ``id`` is the article id.
+    """
+    id: Optional[str] = None
+    title: Optional[str] = None
+    type: Optional[str] = None
+    category: Optional[str] = None
+    description: Optional[str] = None
+    picture: Optional[str] = None
+    status: Optional[str] = None
+    reserved: Optional[bool] = None
+    given: Optional[bool] = None
+    acquired: Optional[bool] = None
+    closed: Optional[bool] = None
+    archived: Optional[bool] = None
+    conversation_id: Optional[str] = None
+    latest_message: Optional[str] = None
+    latest_message_author: Optional[str] = None
+    latest_message_timestamp: Optional[int] = None
+    latest_activity_timestamp: Optional[int] = None
+    unseen_count: Optional[int] = None
+    author: Optional[Dict[str, Any]] = None
+    reservation: Optional[Dict[str, Any]] = None
+    selected_recipient: Optional[Any] = None
+    raw: Dict[str, Any] = field(default_factory=dict)
+
+    @classmethod
+    def from_server(cls, payload: Any) -> "ConversationSummary":
+        if not isinstance(payload, dict):
+            return cls(raw={} if payload is None else {"value": payload})
+        return cls(
+            id=payload.get("_id") or payload.get("id") or payload.get("item_id"),
+            title=payload.get("title"),
+            type=payload.get("type"),
+            category=payload.get("category"),
+            description=payload.get("description"),
+            picture=payload.get("picture"),
+            status=payload.get("status"),
+            reserved=payload.get("reserved"),
+            given=payload.get("given"),
+            acquired=payload.get("acquired"),
+            closed=payload.get("closed"),
+            archived=payload.get("archived"),
+            conversation_id=payload.get("latest_conversation_id")
+                or payload.get("conversation_id"),
+            latest_message=payload.get("latest_message_content")
+                or payload.get("last_message"),
+            latest_message_author=payload.get("latest_message_author"),
+            latest_message_timestamp=payload.get("latest_message_timestamp"),
+            latest_activity_timestamp=payload.get("latest_activity_timestamp"),
+            unseen_count=payload.get("unseenCount")
+                or payload.get("unread_message_count"),
+            author=payload.get("author"),
+            reservation=payload.get("reservation"),
+            selected_recipient=payload.get("selected_recipient"),
+            raw=payload,
+        )
+
+
+@dataclass
+class OrderConfirmed:
+    """Result of confirming a sale order (``ConfirmationOrderRemote``)."""
+    reservation_id: Optional[str] = None
+    conversation_id: Optional[str] = None
+    raw: Dict[str, Any] = field(default_factory=dict)
+
+    @classmethod
+    def from_server(cls, payload: Any) -> "OrderConfirmed":
+        if not isinstance(payload, dict):
+            return cls(raw={} if payload is None else {"value": payload})
+        return cls(
+            reservation_id=payload.get("reservationId"),
+            conversation_id=payload.get("conversationId"),
+            raw=payload,
+        )
+
+
+@dataclass
+class AdoptionConfirmed:
+    """Result of confirming a donation adoption (``AdoptionConfirmedRemote``)."""
+    big_savings: Optional[bool] = None
+    carbon_value: Optional[float] = None
+    savings: Optional[float] = None
+    raw: Dict[str, Any] = field(default_factory=dict)
+
+    @classmethod
+    def from_server(cls, payload: Any) -> "AdoptionConfirmed":
+        if not isinstance(payload, dict):
+            return cls(raw={} if payload is None else {"value": payload})
+        return cls(
+            big_savings=payload.get("bigSavings"),
+            carbon_value=payload.get("carbonValue"),
+            savings=payload.get("savings"),
             raw=payload,
         )

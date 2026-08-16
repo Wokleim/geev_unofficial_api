@@ -24,8 +24,11 @@ from .exceptions import (
     ValidationError,
 )
 from .models import (
+    AdoptionConfirmed,
     CarbonSummary,
+    ConversationSummary,
     Message,
+    OrderConfirmed,
     Registration,
     Reservation,
     Review,
@@ -40,7 +43,10 @@ __all__ = [
     "Article",
     "User",
     "Conversation",
+    "ConversationSummary",
     "Message",
+    "OrderConfirmed",
+    "AdoptionConfirmed",
     "Session",
     "Registration",
     "Reservation",

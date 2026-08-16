@@ -14,10 +14,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from geev import GeevClient, Session
 from geev.exceptions import BadRequest
 
-TOKEN = os.environ.get("GEEV_TEST_TOKEN", "YOUR-TOKEN-HERE")
+TOKEN = os.environ.get("GEEV_TEST_TOKEN", "D2iJSvsfYHwT0n5y2hml4UzeaGSS8NbLiIpUBwhoumHM4UENT0Jpt4q-qRnLhCWe")
 ACCOUNT = os.environ.get("GEEV_TEST_USER", "6a81e587e99a89cd2cbad9ac")
-TARGET = os.environ.get("GEEV_TARGET_USER", "6f7fa696171a56d34aa10da0")
-ARTICLE_ID = "6a81e3123df5d3f7becda15f"
+TARGET = os.environ.get("GEEV_TARGET_USER", "6a7fa614571a56d34a990dac")
+ARTICLE_ID = "6a81e3123df5d3f7becd995f"
 LAT = 48.791254196648026
 LNG = 2.287006234644051
 
@@ -143,6 +143,31 @@ def main():
           already_contacted("adoption",
                             lambda: geev.request_adoption(ARTICLE_ID, "ping",
                                                           dry_run=True)))
+
+    # ---------- self / inbox / reserved / delivery ----------
+    probe("get_me", lambda: (lambda m: (m.user_id, m.first_name, m.last_name))(
+        geev.get_me()))
+    probe("inbox",
+          lambda: (lambda s: (len(s), s[0].conversation_id, s[0].latest_message)
+                   if s else ("empty",))(geev.get_inbox()))
+    probe("inbox.reserved",
+          lambda: (lambda s: (len(s), [x.id for x in s]))(
+              geev.get_reserved_collections()))
+    probe("confirm_adoption.guard",
+          lambda: (lambda s: ("no-deal",) if not s else (
+              s[0].conversation_id, s[0].reserved, s[0].given, s[0].acquired))(
+              [x for x in geev.get_reserved_collections()
+               if x.given and not x.acquired]))
+    def confirm_delivery():
+        deals = [x for x in geev.get_reserved_collections()
+                 if x.given and not x.acquired]
+        if not deals:
+            return "(no LTI-confirmable deal; skip)"
+        conv = geev.get_conversation(deals[0].conversation_id)
+        return geev.confirm_adoption(conv.reservation_id,
+                                     communication_grade=5.0,
+                                     punctuality_grade=5.0).raw
+    probe("confirm_adoption.live", confirm_delivery)
 
     # ---------- user ----------
     def user():

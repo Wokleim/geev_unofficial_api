@@ -1,4 +1,4 @@
-# python-geev-class
+# geev_unofficial_api
 
 A **synchronous** Python client library for the Geev API (`https://prod.geev.fr`).
 It reproduces exactly what the Geev Android app (v8.6.2) sends on the wire -
@@ -168,11 +168,21 @@ geev.validate_account(reg.accountId, "123456")      # code from the email
 | `request_adoption(article_id, message, dry_run=False) -> dict` | `POST /adoptions` | `{itemIds, message}` - expresses intent, does **not** reserve |
 | `list_conversations(item_id=None, with_archived=False) -> list` | `GET /self/conversations` | one article summary per thread |
 
+**Inbox, reserved deals, delivery**
+
+| Method | Endpoint | Notes |
+|--------|----------|-------|
+| `get_inbox(with_archived=False) -> List[ConversationSummary]` | `GET /self/conversations` | inbox: one summary per thread, with latest message + unread count |
+| `get_reserved_collections() -> List[ConversationSummary]` | ... | inbox entries where a deal is `reserved` (vendor accepted) |
+| `confirm_adoption(reservation_id, *, communication_grade, punctuality_grade, feedback=None) -> AdoptionConfirmed` | `PATCH /reservations/{id}/confirm-adoption` | adopter confirms the donation was delivered; closes the deal |
+| `confirm_order(article_id, *, recipient_user_id=None, firstname=None, lastname=None) -> OrderConfirmed` | `POST /reservations` | buyer confirms a sale order |
+
 **Users**
 
 | Method | Endpoint | Notes |
 |--------|----------|-------|
 | `get_user(user_id) -> User` | – | no network call |
+| `get_me() -> User` | – | a `User` handle for the logged-in session (`session.userId`); no network call |
 
 ### 3.2 `User`
 
@@ -235,9 +245,20 @@ retry with `**contact(..., confirm=True)**`.
 |----------------|---------|
 | `conversation_id` | thread id |
 | `item_id`, `status`, `messages` | fetched fields (after `fetch()`) |
+| `reservation_id`, `reservation` | deal attached to the thread (after `fetch()`) |
 | `fetch() -> Conversation` | `GET /v3/conversations/{id}` |
 | `send_message(text) -> Message` | `POST /v3/conversations/{id}/message` |
 | `list_open(client, item_id=None, with_archived=False) -> list` | `GET /v3/self/conversations` |
+
+Example - complete a donation deal:
+
+```python
+reserved = geev.get_reserved_collections()
+deal = next(s for s in reserved if s.given and not s.acquired)
+conversation = geev.get_conversation(deal.conversation_id)
+geev.confirm_adoption(conversation.reservation_id,
+                      communication_grade=5.0, punctuality_grade=5.0)
+```
 
 ### 3.5 Auth flow - signup, signin, logout
 
@@ -275,6 +296,9 @@ client object. To reuse a session across runs, capture `session.appToken` and
 | `Location` | `label`, `city`, `postalCode`, `latitude`, `longitude`, `radius`, `obfuscated` |
 | `Message` | `id`, `author_id`, `timestamp`, `text`, `read_by_receiver`, `raw` |
 | `Conversation` | handle class; see §3.4 |
+| `ConversationSummary` | inbox entry: `id`, `title`, `status`, `reserved`/`given`/`acquired`/`closed`, `conversation_id`, `latest_message`, `unseen_count`, `raw` |
+| `OrderConfirmed` | `reservation_id`, `conversation_id`, `raw` |
+| `AdoptionConfirmed` | `big_savings`, `carbon_value`, `savings`, `raw` |
 
 Every model also carries the raw server payload in `.raw` so you can access
 fields the library does not wrap yet.

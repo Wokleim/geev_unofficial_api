@@ -47,7 +47,7 @@ article.details()                                 # GET /v3/items/{id}  (lazy)
 ## 1. Install
 
 ```bash
-cd /tmp/python_geev_class
+uv sync
 pip install -e .
 # optional, for tests
 pip install -e ".[tests]"
@@ -323,7 +323,7 @@ The library reproduces the exact wire behaviour of Geev 8.6.2:
   compatible) so signing stays exact.
 
 Reverse-engineered from the decompiled APK; the endpoint reference doc is
-`/tmp/decoded/GEEV_API.md`.
+`[RAW_API_DOC.md](docs/RAW_API_DOC.md)`.
 
 ---
 
@@ -334,7 +334,6 @@ is marked `live`; destructive operations (reserve, logout) are **not**
 executed automatically.
 
 ```bash
-cd /tmp/python_geev_class
 pytest tests/test_live.py -m live -v
 ```
 
@@ -352,7 +351,10 @@ override with environment variables:
 ## 8. Project layout
 
 ```
-python_geev_class/
+./
+├── docs
+│   ├── API.md                 # doc for the endpoints used in this project
+│   └── RAW_API_DOC.md         # doc produced by a LLM while reversing the app
 ├── pyproject.toml
 ├── README.md                  # this document
 ├── geev/

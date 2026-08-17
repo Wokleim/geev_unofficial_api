@@ -1,6 +1,6 @@
 [project]
-name = "python-geev-class"
-version = "0.1.0"
+name = "geev-unofficial-api"
+version = "1.0.0"
 description = "Synchronous client library for the Geev peer-to-peer donation/sales app (https://www.geev.fr)."
 readme = "README.md"
 requires-python = ">=3.11"
